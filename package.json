@@ -24,7 +24,10 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+<<<<<<< HEAD
     "argon2": "^0.45.1",
+=======
+>>>>>>> 0647a248e0af189aa46f9a5a5d8b62c7af8e8a80
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
