@@ -2,6 +2,8 @@ import { Prisma } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { PaginationQueryParams } from "../types/pagination.js";
 import { ApiError } from "../utils/api-error.js";
+import { generateSlug } from "../utils/slug.js";
+import { CreatePostSchema } from "../validators/post.service.js";
 
 export const getPostsService = async (query: PaginationQueryParams) => {
   const { page, take, sortOrder, sortBy, search } = query;
@@ -44,4 +46,30 @@ export const getPostBySlugService = async (slug: string) => {
   }
 
   return blog;
+};
+
+export const createPostService = async (body: CreatePostSchema) => {
+  const blog = await prisma.post.findUnique({
+    where: { title: body.title },
+  });
+
+  if (blog) {
+    throw new ApiError(400, "Title already exist!");
+  }
+
+  const slug = generateSlug(body.title);
+
+  await prisma.post.create({
+    data: {
+      title: body.title,
+      description: body.description,
+      category: body.category,
+      slug: slug,
+      content: body.content,
+      thumbnail: body.thumbnail,
+      userId: body.userId,
+    },
+  });
+
+  return { message: "create post success" };
 };
