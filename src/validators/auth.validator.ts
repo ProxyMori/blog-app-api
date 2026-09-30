@@ -19,6 +19,7 @@ export const registerSchema = z.object({
       message: "Password must contain at least one special character",
     }),
 });
+<<<<<<< HEAD
 export const loginSchema = z.object({
   email: z.email(),
   password: z.string().min(1),
@@ -26,3 +27,7 @@ export const loginSchema = z.object({
 
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
+=======
+
+export type RegisterSchema = z.infer<typeof registerSchema>;
+>>>>>>> origin/main

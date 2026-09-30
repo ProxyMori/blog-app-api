@@ -25,11 +25,16 @@ export const getPostBySlugController = async (req: Request, res: Response) => {
 
   res.status(200).send(result);
 };
+<<<<<<< HEAD
 
 export const createPostController = async (req: Request, res: Response) => {
   const userId = res.locals.user.id; // cara ambil userId di dalam token
 
   const result = await createPostService(req.body, userId);
+=======
+export const createPostController = async (req: Request, res: Response) => {
+  const result = await createPostService(req.body);
+>>>>>>> origin/main
 
   res.status(200).send(result);
 };

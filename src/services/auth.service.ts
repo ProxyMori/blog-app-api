@@ -2,8 +2,11 @@ import { User } from "../generated/prisma/client.js";
 import { prisma } from "../lib/prisma.js";
 import { ApiError } from "../utils/api-error.js";
 import argon from "argon2";
+<<<<<<< HEAD
 import { LoginSchema } from "../validators/auth.validator.js";
 import jwt from "jsonwebtoken";
+=======
+>>>>>>> origin/main
 
 export const registerService = async (
   body: Pick<User, "name" | "email" | "password">,
@@ -33,6 +36,7 @@ export const registerService = async (
   // 5. return success
   return { message: "register success!" };
 };
+<<<<<<< HEAD
 
 export const loginService = async (body: LoginSchema) => {
   // 1. cek dulu emailnya udah ada di db atau tidak
@@ -73,3 +77,5 @@ export const loginService = async (body: LoginSchema) => {
     },
   };
 };
+=======
+>>>>>>> origin/main
