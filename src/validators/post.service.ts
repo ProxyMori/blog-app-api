@@ -5,7 +5,10 @@ export const createPostSchema = z.object({
   description: z.string().min(5),
   category: z.string().min(1),
   thumbnail: z.string().min(1),
+<<<<<<< HEAD
+=======
   userId: z.number(),
+>>>>>>> origin/main
   content: z.string().min(1),
 });
 
