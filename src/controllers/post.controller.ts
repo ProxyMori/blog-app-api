@@ -25,16 +25,13 @@ export const getPostBySlugController = async (req: Request, res: Response) => {
 
   res.status(200).send(result);
 };
-<<<<<<< HEAD
 
 export const createPostController = async (req: Request, res: Response) => {
   const userId = res.locals.user.id; // cara ambil userId di dalam token
 
-  const result = await createPostService(req.body, userId);
-=======
-export const createPostController = async (req: Request, res: Response) => {
-  const result = await createPostService(req.body);
->>>>>>> origin/main
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+  const thumbnail = files.thumbnail?.[0];
+  const result = await createPostService(req.body, thumbnail, userId);
 
   res.status(200).send(result);
 };

@@ -4,14 +4,10 @@ import {
   getPostBySlugController,
   getPostsController,
 } from "../controllers/post.controller.js";
-<<<<<<< HEAD
 import { verifyToken } from "../middlewares/auth.middleware.js";
 import { validate } from "../middlewares/validation.middleware.js";
-import { createPostSchema } from "../validators/post.service.js";
-=======
-import { createPostSchema } from "../validators/post.service.js";
-import { validate } from "../middlewares/validation.middleware.js";
->>>>>>> origin/main
+import { createPostSchema } from "../validators/post.validator.js";
+import { upload } from "../middlewares/upload.middleware.js";
 
 const postRoutes = express.Router();
 
@@ -22,6 +18,7 @@ postRoutes.get("/", validate(createPostSchema), createPostController);
 postRoutes.post(
   "/",
   verifyToken(process.env.JWT_SECRET!),
+  upload().fields([{ name: "thumbnail", maxCount: 1 }]),
   validate(createPostSchema),
   createPostController,
 );
