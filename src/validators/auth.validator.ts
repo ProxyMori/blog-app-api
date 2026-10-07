@@ -27,6 +27,23 @@ export const forgotPasswordSchema = z.object({
   email: z.email(),
 });
 
+export const resetPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(6, { error: "Password must be at leats 6 character" })
+    .regex(/[A-Z]/, {
+      error: "Password must contain at least one uppercase letter",
+    })
+    .regex(/[a-z]/, {
+      message: "Password must contain at least one lowercase letter",
+    })
+    .regex(/[0-9]/, { message: "Password must contain at least one number" })
+    .regex(/[^A-Za-z0-9]/, {
+      message: "Password must contain at least one special character",
+    }),
+});
+
+export type ResetPasswordSchema = z.infer<typeof resetPasswordSchema>;
 export type RegisterSchema = z.infer<typeof registerSchema>;
 export type LoginSchema = z.infer<typeof loginSchema>;
 export type forgotPasswordSchema = z.infer<typeof forgotPasswordSchema>;
