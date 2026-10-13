@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
 import {
   forgotPasswordService,
+  googleService,
   loginService,
+  logoutService,
+  refreshService,
   registerService,
   resetPasswordService,
 } from "../services/auth.service.js";
+import { cookieOption } from "../config/cookie.js";
 
 export const registerController = async (req: Request, res: Response) => {
   const result = await registerService(req.body);
@@ -14,7 +18,13 @@ export const registerController = async (req: Request, res: Response) => {
 export const loginController = async (req: Request, res: Response) => {
   const result = await loginService(req.body);
 
-  res.status(200).send(result);
+  res.cookie("accessToken", result.accessToken, cookieOption);
+  res.cookie("refreshToken", result.refreshToken, cookieOption);
+
+  res.status(200).send({
+    message: result.message,
+    user: result.user,
+  });
 };
 export const forgotPasswordController = async (req: Request, res: Response) => {
   const result = await forgotPasswordService(req.body);
@@ -25,5 +35,25 @@ export const forgotPasswordController = async (req: Request, res: Response) => {
 export const resetPasswordController = async (req: Request, res: Response) => {
   const userId = res.locals.user.id;
   const result = await resetPasswordService(req.body, userId);
+  res.status(200).send(result);
+};
+
+export const googleController = async (req: Request, res: Response) => {
+  const result = await googleService(req.body);
+  res.status(200).send(result);
+};
+export const refreshController = async (req: Request, res: Response) => {
+  const result = await refreshService(req.cookies.refreshToken);
+
+  res.cookie("accessToken", result.accessToken, cookieOption);
+  res.status(200).send({ message: "refresh success" });
+};
+
+export const logoutController = async (req: Request, res: Response) => {
+  const result = await logoutService(req.cookies.refreshToken);
+
+  res.clearCookie("accessToken", cookieOption);
+  res.clearCookie("refreshToken", cookieOption);
+
   res.status(200).send(result);
 };

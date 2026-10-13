@@ -4,13 +4,16 @@ import { GlobalError, notFoundError } from "./utils/errors.js";
 import { postRoutes } from "./routes/post.routes.js";
 import cors from "cors";
 import { authRoutes } from "./routes/auth.routes.js";
+import cookieParser from "cookie-parser";
+import { corsOption } from "./config/cors.js";
 
 const PORT = 8000;
 
 const app = express();
 
-app.use(cors());
+app.use(cors(corsOption));
 app.use(express.json()); // agar bisa menerima req.body
+app.use(cookieParser());
 
 app.get("/api", (req, res) => {
   res.status(200).send("Welcome to my API");

@@ -4,6 +4,7 @@ import { ApiError } from "../utils/api-error.js";
 import argon from "argon2";
 import {
   forgotPasswordSchema,
+  GoogleSchema,
   LoginSchema,
   ResetPasswordSchema,
   resetPasswordSchema,
@@ -12,6 +13,7 @@ import jwt from "jsonwebtoken";
 import { sendMail } from "../lib/mail.js";
 import { number } from "zod";
 import { getUserByIdService } from "./user.service.js";
+import axios from "axios";
 
 export const registerService = async (
   body: Pick<User, "name" | "email" | "password">,
@@ -73,15 +75,19 @@ export const loginService = async (body: LoginSchema) => {
 
   // 5. generate accessToken (jwt)
   const payload = { id: user.id, role: user.role };
-
   const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
-    expiresIn: "1d",
+    expiresIn: "15m",
+  });
+
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_REFRESH!, {
+    expiresIn: "7d",
   });
 
   // 6. return message login success + data user + access tokennya
   return {
     message: "Login success",
     accessToken: accessToken,
+    refreshToken: refreshToken,
     user: {
       id: user.id,
       name: user.name,
@@ -133,4 +139,120 @@ export const resetPasswordService = async (
   });
 
   return { message: "Reset password success" };
+};
+
+export const googleService = async (body: GoogleSchema) => {
+  const response = await axios.get(
+    "https://www.googleapis.com/oauth2/v3/userinfo",
+    {
+      headers: {
+        Authorization: `Bearer ${body.accessToken}`,
+      },
+    },
+  );
+
+  let user = await prisma.user.findUnique({
+    where: { email: response.data.email },
+  });
+
+  if (user) {
+    // Soft deleted account
+    if (user.deletedAt) {
+      throw new ApiError(403, "This account has been deleted");
+    }
+
+    // Existing credentials account
+    if (user.provider !== "GOOGLE") {
+      throw new ApiError(400, "Please login using credentials");
+    }
+  }
+
+  // kalo emailnya belum kepake sama sekali
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        name: response.data.name,
+        email: response.data.email,
+        password: "",
+        profilePic: response.data.picture,
+        provider: "GOOGLE",
+      },
+    });
+  }
+
+  // generate accessToken (jwt)
+  const payload = { id: user.id, role: user.role };
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+    expiresIn: "15m",
+  });
+
+  const refreshToken = jwt.sign(payload, process.env.JWT_SECRET_REFRESH!, {
+    expiresIn: "15m",
+  });
+
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      userId: user.id,
+      expiredAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+    },
+  });
+
+  // return message login success + data user + access tokennya
+  return {
+    message: "Login success",
+    accessToken: accessToken,
+    refreshToken: refreshToken,
+    user: {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      profilePic: user.profilePic,
+    },
+  };
+};
+
+export const refreshService = async (refreshToken?: string) => {
+  if (!refreshToken) {
+    throw new ApiError(400, "No refresh token");
+  }
+
+  const storedToken = await prisma.refreshToken.findUnique({
+    where: { token: refreshToken },
+    include: {
+      user: true,
+    },
+  });
+
+  if (!storedToken) {
+    throw new ApiError(400, "Refresh token not found");
+  }
+
+  if (storedToken.expiredAt < new Date()) {
+    throw new ApiError(400, "Refresh token expired");
+  }
+
+  const payload = {
+    id: storedToken.user.id,
+    role: storedToken.user.role,
+  };
+
+  const accessToken = jwt.sign(payload, process.env.JWT_SECRET!, {
+    expiresIn: "15m",
+  });
+
+  return { accessToken };
+};
+
+export const logoutService = async (refreshToken?: string) => {
+  if (!refreshToken) {
+    throw new ApiError(400, "No refresh token");
+  }
+
+  await prisma.refreshToken.delete({
+    where: { token: refreshToken },
+  });
+
+  return { message: "logout success" };
 };

@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 export const verifyToken = (secretKey: string) => {
   return (req: Request, res: Response, next: NextFunction) => {
-    const token = req.headers.authorization?.split(" ")[1]; // Bearer token
+    const token = req.cookies?.accessToken; // Bearer token
 
     if (!token) {
       throw new ApiError(401, "No token provided");
